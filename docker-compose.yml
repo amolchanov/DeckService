@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  deckservice:
+    image: deckservice
+    build:
+      context: .
+      dockerfile: DeckService\Dockerfile
