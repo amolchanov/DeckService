@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using DeckService.Models;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 
 namespace DeckService.Repository
@@ -11,6 +13,21 @@ namespace DeckService.Repository
     public class CosmosDbDeckRepository : IDeckRepository
     {
         private static Dictionary<Guid, string> decks = new Dictionary<Guid, string>();
+        private MongoClient client;
+        private const string dbName = "Decks";
+        private string collectionName = "Deck";
+
+        public CosmosDbDeckRepository(string connectionString)
+        {
+            MongoClientSettings settings = MongoClientSettings.FromUrl(
+              new MongoUrl(connectionString)
+            );
+
+            settings.SslSettings =
+              new SslSettings() { EnabledSslProtocols = SslProtocols.Tls12 };
+
+            client = new MongoClient(settings);
+        }
 
         public Deck Load(Guid id)
         {
