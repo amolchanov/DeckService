@@ -1,4 +1,5 @@
-﻿using DeckService.Repository;
+﻿using DeckService.Models;
+using DeckService.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +32,17 @@ namespace DeckService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.AddSingleton<IDeckRepository>(new CosmosDbDeckRepository(Configuration["CosmosDbConnectionString"]));
+
+            var repository = new CosmosDBRepository<Deck>(
+                Configuration["CosmosDbEndpoint"],
+                Configuration["CosmosDbAuthKey"],
+                Configuration["CosmosDbDatabaseId"],
+                Configuration["CosmosDbCollectionId"]
+            );
+
+            repository.Initialize().Wait();
+
+            services.AddSingleton<IStorageRepository<Deck>>(repository);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using DeckService.Models;
 using DeckService.Repository;
@@ -13,20 +10,20 @@ namespace DeckService.Controllers
     [Route("v1.0/[controller]/[action]")]
     public class DeckController : Controller
     {
-        private IDeckRepository repository;
+        private IStorageRepository<Deck> repository;
 
-        public DeckController(IDeckRepository repository)
+        public DeckController(IStorageRepository<Deck> repository)
         {
             this.repository = repository;
         }
 
         // GET deck/cut
         [HttpGet("{id}")]
-        public DeckResponse Cut(Guid id)
+        public async Task<DeckResponse> Cut(Guid id)
         {
-            var deck = this.repository.Load(id);
+            var deck = await this.repository.GetItemAsync(id.ToString());
             deck.Cut();
-            this.repository.Save(deck);
+            await this.repository.UpdateItemAsync(id.ToString(), deck);
 
             return new DeckResponse() {
                 Id = id,
@@ -36,11 +33,11 @@ namespace DeckService.Controllers
 
         // GET deck/deal
         [HttpGet("{id}")]
-        public DealCardResponse Deal(Guid id)
+        public async Task<DealCardResponse> Deal(Guid id)
         {
-            var deck = this.repository.Load(id);
+            var deck = await this.repository.GetItemAsync(id.ToString());
             var card = deck.DealCard();
-            this.repository.Save(deck);
+            await this.repository.UpdateItemAsync(id.ToString(), deck);
 
             return new DealCardResponse() {
                 Id = id,
@@ -51,10 +48,11 @@ namespace DeckService.Controllers
 
         // GET deck/new
         [HttpGet]
-        public DeckResponse New()
+        public async Task<DeckResponse> New()
         {
             var deck = Deck.NewDeck();
-            this.repository.Save(deck);
+            await this.repository.CreateItemAsync(deck);
+
             return new DeckResponse() {
                 Id = deck.Id,
                 Message = "A new deck has been created"
@@ -63,11 +61,11 @@ namespace DeckService.Controllers
 
         // GET deck/shuffle
         [HttpGet("{id}")]
-        public DeckResponse Shuffle(Guid id)
+        public async Task<DeckResponse> Shuffle(Guid id)
         {
-            var deck = this.repository.Load(id);
+            var deck = await this.repository.GetItemAsync(id.ToString());
             deck.Shuffle();
-            this.repository.Save(deck);
+            await this.repository.UpdateItemAsync(id.ToString(), deck);
 
             return new DeckResponse() {
                 Id = id,

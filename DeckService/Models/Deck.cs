@@ -1,19 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace DeckService.Models
 {
     public class Deck
     {
+        [JsonProperty(PropertyName = "id")]
         public Guid Id { get; set; }
 
+        [JsonProperty(PropertyName = "cardsDealt")]
         public int CardsDealt { get; set; }
 
+        [JsonProperty(PropertyName = "cards")]
         public Card[] Cards { get; set; }
 
+        [JsonProperty(PropertyName = "dealtCards")]
         public Card[] DealtCards { get; set; }
+
+        [JsonProperty(PropertyName = "_etag")]
+        public string ETag { get; set; }
 
         public bool IsEmpty
         {
@@ -40,8 +45,7 @@ namespace DeckService.Models
                 {
                     deck.Cards[index++] = new Card() {
                         Suit = (Suit)suit,
-                        Rank = (Rank)rank,
-                        Index = index
+                        Rank = (Rank)rank
                     };
                 }
             }

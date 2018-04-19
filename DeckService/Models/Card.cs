@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace DeckService.Models
 {
     public class Card
     {
+        [JsonProperty(PropertyName = "rank")]
         public Rank Rank { get; set; }
-        public Suit Suit { get; set; }
 
-        public int Index { get; set; }
+        [JsonProperty(PropertyName = "suit")]
+        public Suit Suit { get; set; }
 
         public override string ToString()
         {
-            return Rank.ToString() + " of " + Suit.ToString() + "s " + Index;
+            return Rank.ToString() + " of " + Suit.ToString() + "s";
         }
     }
 }
