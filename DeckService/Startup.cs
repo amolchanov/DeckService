@@ -32,17 +32,7 @@ namespace DeckService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-
-            var repository = new CosmosDBRepository<Deck>(
-                Configuration["CosmosDbEndpoint"],
-                Configuration["CosmosDbAuthKey"],
-                Configuration["CosmosDbDatabaseId"],
-                Configuration["CosmosDbCollectionId"]
-            );
-
-            repository.Initialize().Wait();
-
-            services.AddSingleton<IStorageRepository<Deck>>(repository);
+            services.AddSingleton<IStorageRepositoryFactory<Deck>>(new CosmosDbStorageRepositoryFactory<Deck>(Configuration));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -50,15 +40,15 @@ namespace DeckService
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-
-            if (env.IsDevelopment())
+            app.UseDeveloperExceptionPage();
+/*            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             else
             {
                 app.UseExceptionHandler("/error");
-            }
+            }*/
             app.UseMvc();
         }
     }

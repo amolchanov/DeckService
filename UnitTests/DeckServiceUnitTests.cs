@@ -12,8 +12,8 @@ namespace UnitTests
         [TestMethod]
         public void TestNewDeckMethod()
         {
-            var deck = Deck.NewDeck();
-            Assert.AreEqual(0, deck.CardsDealt, "The new deck must have no cards dealt");
+            var deck = new Deck();
+            Assert.AreEqual(0, deck.LastDealtCardIndex, "The new deck must have no cards dealt");
             AssertDeckHasExpectedAllCards(deck);
         }
 
@@ -22,27 +22,27 @@ namespace UnitTests
         {
             for (int cutIndex = 1; cutIndex <= 50; cutIndex++)
             {
-                var deck = Deck.NewDeck();
+                var deck = new Deck();
                 deck.Shuffle();
-                var cardsBeforeCutIndex = new List<Card>();
-                var cardsAfterCutIndex = new List<Card>();
-                for (int i = 0; i < deck.Cards.Length; i++)
+                var cardsBeforeCutIndex = new List<int>();
+                var cardsAfterCutIndex = new List<int>();
+                for (int i = 0; i < deck.CardIndexies.Length; i++)
                 {
                     if (i < cutIndex)
                     {
-                        cardsBeforeCutIndex.Add(deck.Cards[i]);
+                        cardsBeforeCutIndex.Add(deck.CardIndexies[i]);
                     }
                     else
                     {
-                        cardsAfterCutIndex.Add(deck.Cards[i]);
+                        cardsAfterCutIndex.Add(deck.CardIndexies[i]);
                     }
                 }
 
                 deck.Cut(cutIndex);
 
-                Func<Card, string> contactFunc = (Card c) => c + (c != deck.Cards[deck.Cards.Length - 1] ? "," : "");
+                Func<int,string> contactFunc = (int c) => c + (c != deck.CardIndexies[deck.CardIndexies.Length - 1] ? "," : "");
 
-                var actualCards = String.Concat(deck.Cards.Select(c => contactFunc(c)));
+                var actualCards = String.Concat(deck.CardIndexies.Select(c => contactFunc(c)));
                 var expectedCards = String.Concat(cardsAfterCutIndex.Concat(cardsBeforeCutIndex).Select(c => contactFunc(c)));
 
                 Assert.AreEqual(expectedCards, actualCards, "The deck wasn't cut properly");
@@ -53,7 +53,7 @@ namespace UnitTests
         [TestMethod]
         public void TestShuffleDeckMethod()
         {
-            var deck = Deck.NewDeck();
+            var deck = new Deck();
             deck.Shuffle();
             AssertDeckHasExpectedAllCards(deck);
         }
@@ -61,11 +61,11 @@ namespace UnitTests
         [TestMethod]
         public void TestDealCardMethod()
         {
-            var deck = Deck.NewDeck();
+            var deck = new Deck();
             deck.Shuffle();
             deck.Cut();
 
-            for (var i = 0; i < deck.Cards.Length; i++)
+            for (var i = 0; i < deck.CardIndexies.Length; i++)
             {
                 deck.DealCard();
             }
@@ -76,14 +76,11 @@ namespace UnitTests
 
         private void AssertDeckHasExpectedAllCards(Deck deck)
         {
-            foreach (var rank in Enum.GetValues(typeof(Rank)))
+            for (int i = 0; i < 52; i++)
             {
-                foreach (var suit in Enum.GetValues(typeof(Suit)))
+                if (!deck.CardIndexies.Any(ci => ci == i))
                 {
-                    if (!deck.Cards.Any(c => c.Suit == (Suit)suit && c.Rank == (Rank)rank))
-                    {
-                        Assert.Fail("The deck doesn't have all required cards");
-                    }
+                    Assert.Fail("The deck doesn't have all required cards");
                 }
             }
         }

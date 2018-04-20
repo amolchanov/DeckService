@@ -5,106 +5,102 @@ namespace DeckService.Models
 {
     public class Deck
     {
+        private static Card[] AllCards = new Card[52];
+
         [JsonProperty(PropertyName = "id")]
         public Guid Id { get; set; }
 
-        [JsonProperty(PropertyName = "cardsDealt")]
-        public int CardsDealt { get; set; }
+        [JsonProperty(PropertyName = "lastDealtCardIndex")]
+        public int LastDealtCardIndex { get; set; }
 
-        [JsonProperty(PropertyName = "cards")]
-        public Card[] Cards { get; set; }
-
-        [JsonProperty(PropertyName = "dealtCards")]
-        public Card[] DealtCards { get; set; }
+        [JsonProperty(PropertyName = "cardsIndexies")]
+        public int[] CardIndexies { get; }
 
         [JsonProperty(PropertyName = "_etag")]
         public string ETag { get; set; }
 
-        public bool IsEmpty
-        {
-            get
-            {
-                return CardsDealt == 52;
-            }
-        }
+        public bool IsEmpty => this.LastDealtCardIndex == AllCards.Length;
 
-        private Deck()
+        static Deck()
         {
-            Cards = new Card[52];
-            DealtCards = new Card[52];
-            Id = Guid.NewGuid();
-        }
-
-        public static Deck NewDeck()
-        {
-            var deck = new Deck();
             var index = 0;
             foreach (var rank in Enum.GetValues(typeof(Rank)))
             {
                 foreach (var suit in Enum.GetValues(typeof(Suit)))
                 {
-                    deck.Cards[index++] = new Card() {
-                        Suit = (Suit)suit,
-                        Rank = (Rank)rank
-                    };
+                    AllCards[index++] = new Card((Rank)rank, (Suit)suit);
                 }
             }
-            return deck;
+        }
+
+        public Deck()
+        {
+            CardIndexies = new int[AllCards.Length];
+            for (int i = 0; i < AllCards.Length; i++)
+            {
+                this.CardIndexies[i] = i;
+            }
+            Id = Guid.NewGuid();
         }
 
         public void Shuffle()
         {
+            if (LastDealtCardIndex != 0)
+            {
+                throw new InvalidOperationException("One or more cards have been dealt. Deck cannot be suffled anymore.");
+            }
+
             Random random = new Random();
-            for(int i = this.Cards.Length - 1; i > 0; i--)
+            for(int i = this.CardIndexies.Length - 1; i > 0; i--)
             {
                 int  randomIndex = random.Next(i - 1);
-                var tmp = this.Cards[i];
-                this.Cards[i] = this.Cards[randomIndex];
-                this.Cards[randomIndex] = tmp;
+                var tmp = this.CardIndexies[i];
+                this.CardIndexies[i] = this.CardIndexies[randomIndex];
+                this.CardIndexies[randomIndex] = tmp;
             }
         }
 
         public void Cut()
         {
-            Cut(new Random().Next(1, this.Cards.Length - 2));
+            Cut(new Random().Next(1, this.CardIndexies.Length - 2));
         }
 
         internal void Cut(int cutIndex)
         {
-            if (CardsDealt != 0)
+            if (LastDealtCardIndex != 0)
             {
                 throw new InvalidOperationException("One or more cards have been dealt. Deck cannot be cut anymore.");
             }
 
             int startIndex = cutIndex;
-            int mod = this.Cards.Length % cutIndex;
-            for (int i = 0; i < this.Cards.Length - 1; i++)
+            int mod = this.CardIndexies.Length % cutIndex;
+            for (int i = 0; i < this.CardIndexies.Length - 1; i++)
             {
-                if (startIndex == this.Cards.Length)
+                if (startIndex == this.CardIndexies.Length)
                 {
                     if (mod == 0)
                     {
                         break;
                     }
 
-                    startIndex = this.Cards.Length - mod;
-                    mod = (this.Cards.Length - i) % (startIndex - i);
+                    startIndex = this.CardIndexies.Length - mod;
+                    mod = (this.CardIndexies.Length - i) % (startIndex - i);
                 }
 
-                var tmp = this.Cards[i];
-                this.Cards[i] = this.Cards[startIndex];
-                this.Cards[startIndex++] = tmp;
+                var tmp = this.CardIndexies[i];
+                this.CardIndexies[i] = this.CardIndexies[startIndex];
+                this.CardIndexies[startIndex++] = tmp;
             }
         }
 
         public Card DealCard()
         {
-            if (CardsDealt == this.Cards.Length)
+            if (LastDealtCardIndex == this.CardIndexies.Length)
             {
                 throw new InvalidOperationException("No more cards to deal. The deck is empty.");
             }
-            this.DealtCards[CardsDealt] = this.Cards[CardsDealt];
-            return this.Cards[CardsDealt++];
+
+            return AllCards[this.CardIndexies[LastDealtCardIndex++]];
         }
     }
 }

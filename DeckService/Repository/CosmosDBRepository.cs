@@ -13,16 +13,15 @@ namespace DeckService.Repository
 
         public CosmosDBRepository(string endpoint, string authKey, string databaseId, string collectionId)
         {
-            client = new DocumentClient(new Uri(endpoint), authKey);
+            this.client = new DocumentClient(new Uri(endpoint), authKey);
             this.databaseId = databaseId;
             this.collectionId = collectionId;
-
         }
 
         public async Task Initialize()
         {
-            await CreateDatabaseIfNotExistsAsync();
-            await CreateCollectionIfNotExistsAsync();
+            await this.CreateDatabaseIfNotExistsAsync();
+            await this.CreateCollectionIfNotExistsAsync();
         }
 
         public async Task<T> GetItemAsync(string id)

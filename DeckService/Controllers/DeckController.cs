@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using DeckService.Models;
 using DeckService.Repository;
 using DeckService.Responses;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DeckService.Controllers
@@ -10,77 +13,106 @@ namespace DeckService.Controllers
     [Route("v1.0/[controller]/[action]")]
     public class DeckController : Controller
     {
-        private IStorageRepository<Deck> repository;
+        private static IStorageRepository<Deck> repository;
 
-        public DeckController(IStorageRepository<Deck> repository)
+        public DeckController(IHostingEnvironment env, IStorageRepositoryFactory<Deck> repositoryFactory)
         {
-            this.repository = repository;
+            repository = repositoryFactory.GetStorageRepository(env.IsDevelopment());
         }
 
-        // GET deck/cut
+        // GET deck/cut/{id}
         [HttpGet("{id}")]
-        public async Task<DeckResponse> Cut(Guid id)
+        public async Task<IActionResult> Cut(Guid id)
         {
-            var deck = await this.repository.GetItemAsync(id.ToString());
-            deck.Cut();
-            await this.repository.UpdateItemAsync(id.ToString(), deck);
+            var deck = await repository.GetItemAsync(id.ToString());
+            try
+            {
+                deck.Cut();
+            }
+            catch(InvalidOperationException e)
+            {
+                return new BadRequestObjectResult(new { e.Message });
+            }
 
-            return new DeckResponse() {
-                Id = id,
-                Message = "The deck has been cut"
-            };
+            await repository.UpdateItemAsync(id.ToString(), deck);
+            return new ObjectResult(
+                new DeckResponse()
+                {
+                    Id = id,
+                    Message = "The deck has been cut"
+                }
+            );
         }
 
-        // GET deck/deal
+        // GET deck/deal/{id}
         [HttpGet("{id}")]
-        public async Task<DealCardResponse> Deal(Guid id)
+        public async Task<IActionResult> Deal(Guid id)
         {
-            var deck = await this.repository.GetItemAsync(id.ToString());
-            var card = deck.DealCard();
-            await this.repository.UpdateItemAsync(id.ToString(), deck);
+            var deck = await repository.GetItemAsync(id.ToString());
+            Card card = null;
+            try
+            {
+                card = deck.DealCard();
+            }
+            catch (InvalidOperationException e)
+            {
+                return new BadRequestObjectResult(new { e.Message });
+            }
 
-            return new DealCardResponse() {
-                Id = id,
-                Card = card.ToString(),
-                Message = "The next card is dealt"
-            };
+            await repository.UpdateItemAsync(id.ToString(), deck);
+            return new ObjectResult(
+                new DealCardResponse()
+                {
+                    Id = id,
+                    Card = card.ToString(),
+                    Message = "The next card is dealt"
+                }
+            );
         }
 
-        // GET deck/new
+        // GET deck/new/{id}
         [HttpGet]
-        public async Task<DeckResponse> New()
+        public async Task<IActionResult> New()
         {
-            var deck = Deck.NewDeck();
-            await this.repository.CreateItemAsync(deck);
+            var deck = new Deck();
+            await repository.CreateItemAsync(deck);
 
-            return new DeckResponse() {
-                Id = deck.Id,
-                Message = "A new deck has been created"
-            };
+            return new ObjectResult(
+                new DeckResponse() {
+                    Id = deck.Id,
+                    Message = "A new deck has been created"
+                }
+            );
         }
 
-        // GET deck/shuffle
+        // GET deck/shuffle/{id}
         [HttpGet("{id}")]
-        public async Task<DeckResponse> Shuffle(Guid id)
+        public async Task<IActionResult> Shuffle(Guid id)
         {
-            var deck = await this.repository.GetItemAsync(id.ToString());
-            deck.Shuffle();
-            await this.repository.UpdateItemAsync(id.ToString(), deck);
+            var deck = await repository.GetItemAsync(id.ToString());
+            try
+            {
+                deck.Shuffle();
+            }
+            catch (InvalidOperationException e)
+            {
+                return new BadRequestObjectResult(new { e.Message });
+            }
 
-            return new DeckResponse() {
-                Id = id,
-                Message = "The deck has been suffled"
-            };
+            await repository.UpdateItemAsync(id.ToString(), deck);
+            return new ObjectResult(
+                new DeckResponse()
+                {
+                    Id = id,
+                    Message = "The deck has been suffled"
+                }
+            );
         }
 
         [Route("/error")]
-        public ErrorResponse Error()
+        public IActionResult Error()
         {
-            return new ErrorResponse()
-            {
-                Message = "An internal server error occured",
-                ErrorCode = "InternalServerError"
-            };
+            return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
         }
     }
 }

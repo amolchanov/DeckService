@@ -1,14 +1,16 @@
-﻿using Newtonsoft.Json;
-
-namespace DeckService.Models
+﻿namespace DeckService.Models
 {
     public class Card
     {
-        [JsonProperty(PropertyName = "rank")]
-        public Rank Rank { get; set; }
+        public Card(Rank rank, Suit suit)
+        {
+            Rank = rank;
+            Suit = suit;
+        }
 
-        [JsonProperty(PropertyName = "suit")]
-        public Suit Suit { get; set; }
+        public Rank Rank { get; private set; }
+
+        public Suit Suit { get; private set; }
 
         public override string ToString()
         {
