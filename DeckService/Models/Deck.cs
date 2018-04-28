@@ -49,12 +49,12 @@ namespace DeckService.Models
 
         public Deck()
         {
-            CardIndexies = new int[AllCards.Length];
+            this.CardIndexies = new int[AllCards.Length];
             for (int i = 0; i < AllCards.Length; i++)
             {
                 this.CardIndexies[i] = i;
             }
-            Id = Guid.NewGuid();
+            this.Id = Guid.NewGuid();
         }
 
         public void Shuffle()
@@ -109,12 +109,12 @@ namespace DeckService.Models
 
         public Card DealCard()
         {
-            if (NextCardIndex == this.CardIndexies.Length)
+            if (this.NextCardIndex == this.CardIndexies.Length)
             {
                 throw new InvalidOperationException("No more cards to deal. The deck is empty.");
             }
 
-            return AllCards[this.CardIndexies[NextCardIndex++]];
+            return AllCards[this.CardIndexies[this.NextCardIndex++]];
         }
     }
 }
