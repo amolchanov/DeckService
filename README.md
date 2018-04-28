@@ -1,15 +1,19 @@
-# Sample of deck of cards service running on Azure in Docker container
+# Description
 
-The sample app that uses Comsos DB for storage. All decks are created with a unique id in Guid format. The app uses Managed Service Identity to protect access to Azure Storage Vault that stores the connection string to Cosmos DB.
+A sample web service to manage deck of cards that uses Comsos DB for storage. All decks are created with a unique id in Guid format. The service supports multiple concurrent users operating independently on their decks by referencing them using unique id. The app uses Managed Service Identity to protect access to Azure Storage Vault that stores the connection string to Cosmos DB.
 
 API reference:
 
-http://{app_name}.azurewebsites.net/v1.0/deck/new - create a new deck
-http://{app_name}.azurewebsites.net/v1.0/deck/cut/{id} - cuts the dec
-http://{app_name}.azurewebsites.net/v1.0/deck/shuffle/{id} - shuffles the deck
-http://{app_name}.azurewebsites.net/v1.0/deck/deal/{id} - deals the next card from the deck
-http://{app_name}.azurewebsites.net/v1.0/deck/state/{id} - returns the state of the deck
-
+- http://{app_name}.azurewebsites.net/v1.0/deck/new
+	 - create a new deck
+- http://{app_name}.azurewebsites.net/v1.0/deck/cut/{id}
+	- cuts the deck
+- http://{app_name}.azurewebsites.net/v1.0/deck/shuffle/{id}
+	- shuffles the deck
+- http://{app_name}.azurewebsites.net/v1.0/deck/deal/{id}
+	- deals the next card from the deck
+- http://{app_name}.azurewebsites.net/v1.0/deck/state/{id}
+	- returns the state of the deck
 
 # Environment variables
 
@@ -122,6 +126,10 @@ az container deployment container config --name %ACR_NAME% --resource-group %RES
 ```
 
 Link: https://docs.microsoft.com/en-us/azure/app-service/containers/app-service-linux-ci-cd
+
+#TO-DO
+
+- Add instructions on creating Cosmos DB, Azure KeyVault and setting up Managed Service Identity
 
 
 # Other links
