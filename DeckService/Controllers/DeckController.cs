@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
+using DeckService.Contants;
 using DeckService.Models;
 using DeckService.Repository;
-using DeckService.Responses;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,11 +34,12 @@ namespace DeckService.Controllers
             }
 
             await repository.UpdateItemAsync(id.ToString(), deck);
+
             return new ObjectResult(
-                new DeckResponse()
+                new
                 {
                     Id = id,
-                    Message = "The deck has been cut"
+                    Message = StringMessages.DeckHasBeenCut
                 }
             );
         }
@@ -60,14 +60,21 @@ namespace DeckService.Controllers
             }
 
             await repository.UpdateItemAsync(id.ToString(), deck);
+
             return new ObjectResult(
-                new DealCardResponse()
+                new
                 {
                     Id = id,
                     Card = card.ToString(),
-                    Message = "The next card is dealt"
+                    Message = StringMessages.CardIsDealt
                 }
             );
+        }
+
+        [Route("/error")]
+        public IActionResult Error()
+        {
+            return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
         }
 
         // GET deck/new/{id}
@@ -78,9 +85,9 @@ namespace DeckService.Controllers
             await repository.CreateItemAsync(deck);
 
             return new ObjectResult(
-                new DeckResponse() {
+                new {
                     Id = deck.Id,
-                    Message = "A new deck has been created"
+                    Message = StringMessages.NewDeckHasBeenCreated
                 }
             );
         }
@@ -100,19 +107,41 @@ namespace DeckService.Controllers
             }
 
             await repository.UpdateItemAsync(id.ToString(), deck);
+
             return new ObjectResult(
-                new DeckResponse()
+                new
                 {
                     Id = id,
-                    Message = "The deck has been suffled"
+                    Message = StringMessages.DeckHasBeenShuffled
                 }
             );
         }
 
-        [Route("/error")]
-        public IActionResult Error()
+        // GET deck/state/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> State(Guid id)
         {
-            return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+            var deck = await repository.GetItemAsync(id.ToString());
+            var response = new
+            {
+                Id = deck.Id,
+                CardsDealt = deck.NextCardIndex,
+                CardsRemaining = deck.CardIndexies.Length - deck.NextCardIndex,
+                RemainingCards = new string[deck.CardIndexies.Length - deck.NextCardIndex],
+                DealtCards = new string[deck.NextCardIndex]
+            };
+
+            for (int i = deck.NextCardIndex; i < deck.CardIndexies.Length; i++)
+            {
+                response.RemainingCards[i - deck.NextCardIndex] = deck[i].ToString();
+            }
+
+            for (int i = 0; i < deck.NextCardIndex; i++)
+            {
+                response.DealtCards[i] = deck[i].ToString();
+            }
+
+            return new ObjectResult(response);
         }
     }
 }

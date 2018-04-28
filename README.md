@@ -1,23 +1,38 @@
-# Build the application
+# Sample of deck of cards service running on Azure in Docker container
 
-Link: https://github.com/dotnet/dotnet-docker/tree/master/samples/dotnetapp
-Link: https://github.com/dotnet/dotnet-docker/blob/master/samples/aspnetapp/README.md#view-the-aspnet-core-app-in-a-running-container-on-windows
+The sample app that uses Comsos DB for storage. All decks are created with a unique id in Guid format. The app uses Managed Service Identity to protect access to Azure Storage Vault that stores the connection string to Cosmos DB.
+
+API reference:
+
+http://{app_name}.azurewebsites.net/v1.0/deck/new - create a new deck
+http://{app_name}.azurewebsites.net/v1.0/deck/cut/{id} - cuts the dec
+http://{app_name}.azurewebsites.net/v1.0/deck/shuffle/{id} - shuffles the deck
+http://{app_name}.azurewebsites.net/v1.0/deck/deal/{id} - deals the next card from the deck
+http://{app_name}.azurewebsites.net/v1.0/deck/state/{id} - returns the state of the deck
+
+
+# Environment variables
 
 ```console
-docker build --pull -t deckservice . -f DeckService/Dockerfile
+set USER_NAME = username
+set ACR_NAME = usernameacr
+set RESOURCE_GROUP_NAME = username-resource-group
+set APP_NAME = deck-service-webapp
+set DNS_LABEL = deck-service-demo
+set AZURE_LOCATION = westus
+set DOCKER_TAG = deckservice
+```
+
+# Build the application
+
+
+```console
+docker build --pull -t %DOCKER_TAG% . -f DeckService/Dockerfile
 ```
 # Run the application
 
 ```console
-docker run --name deckservice --rm -it -p 8000:80 deckservice
-```
-
-# Run the application in a container while you Develop
-
-This didn't work. TODO: Figure out why.
-
-```console
-docker run --rm -it -v e:\Projects\DeckService\DeckService:c:\app\ -w \app\DeckService microsoft/dotnet-nightly:2.1-sdk dotnet watch run
+docker run --name %DOCKER_TAG% --rm -it -p 8000:80 %DOCKER_TAG%
 ```
 
 # Push Docker Images to Azure Container Registry
@@ -26,45 +41,45 @@ Link: https://github.com/dotnet/dotnet-docker/blob/master/samples/dotnetapp/push
 
 ```console
 az login
-az group create --name alexeim-containers --location westus
-az acr create --name alexeim --resource-group alexeim-containers --sku Basic
+az group create --name %RESOURCE_GROUP_NAME% --location %AZURE_LOCATION%
+az acr create --name %ACR_NAME% --resource-group %RESOURCE_GROUP_NAME% --sku Basic
 ```
 
 # Tag the image
 
 ```console
-docker tag deckservice alexeim.azurecr.io/deckservice
+docker tag %DOCKER_TAG% %ACR_NAME%.azurecr.io/%DOCKER_TAG%
 ```
 
 # Log to ACR
 
 ```console
-az acr update -n alexeim --admin-enabled true
+az acr update -n %USER_NAME% --admin-enabled true
 ```
 
 # To see credentials
 
 ```console
-az acr credential show -n alexeim
+az acr credential show -n %USER_NAME%
 ```
 
 # Persist creds
 
 ```console
-az acr credential show -n alexeim --query passwords[0].value --output tsv > %USERPROFILE%\password-acr.txt
-type %USERPROFILE%\password-acr.txt | docker login alexeim.azurecr.io -u alexeim --password-stdin
+az acr credential show -n %USER_NAME% --query passwords[0].value --output tsv > %USERPROFILE%\password-acr.txt
+type %USERPROFILE%\password-acr.txt | docker login %ACR_NAME%.azurecr.io -u %USER_NAME% --password-stdin
 ```
 
 # Push the image to ACR
 
 ```console
-docker push alexeim.azurecr.io/deckservice
+docker push %ACR_NAME%.azurecr.io/%DOCKER_TAG%
 ```
 
 # Create resource group
 
 ```console
-az group create --name deck-service-resource-group --location westus
+az group create --name %RESOURCE_GROUP_NAME% --location %AZURE_LOCATION%
 ```
 
 # Deploy application 
@@ -72,23 +87,23 @@ az group create --name deck-service-resource-group --location westus
 Link: https://docs.microsoft.com/en-us/azure/container-instances/container-instances-tutorial-deploy-app
 
 ```console
-az acr show --name alexeim --query loginServer
-az acr credential show --name alexeim --query "passwords[0].value"
-az container create --resource-group deck-service-resource-group --os-type Windows --name deck-service-app --image alexeim.azurecr.io/deckservice --cpu 1 --memory 1 --registry-username alexeim --registry-password [password] --dns-name-label deck-service-demo --ports 80
+az acr show --name %USER_NAME% --query loginServer
+az acr credential show --name %USER_NAME% --query "passwords[0].value"
+az container create --resource-group %RESOURCE_GROUP_NAME% --os-type Windows --name %APP_NAME% --image %USER_NAME%.azurecr.io/%DOCKER_TAG% --cpu 1 --memory 1 --registry-username %USER_NAME% --registry-password [password] --dns-name-label %DNS_LABEL% --ports 80
 ```
 
 # View deployment progress
 
 ```console
-az container show --resource-group deck-service-resource-group --name deck-service-app --query instanceView.state
-az container show --resource-group deck-service-resource-group --name deck-service-app --query ipAddress.fqdn
-az container logs --resource-group deck-service-resource-group --name deck-service-app
+az container show --resource-group %RESOURCE_GROUP_NAME% --name %APP_NAME% --query instanceView.state
+az container show --resource-group %RESOURCE_GROUP_NAME% --name %APP_NAME% --query ipAddress.fqdn
+az container logs --resource-group %RESOURCE_GROUP_NAME% --name %APP_NAME%
 ```
 
 # Delete resource group
 
 ```console
-az group delete --name [resource group name]
+az group delete --name %RESOURCE_GROUP_NAME%
 ```
 
 # Update deployed container
@@ -96,14 +111,14 @@ az group delete --name [resource group name]
 Link: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-deploy-update
 
 ```console
-docker build . -f ./Dockerfile -t alexeim.azurecr.io/deckservice
-docker push alexeim.azurecr.io/deckservice
+docker build . -f ./Dockerfile -t %ACR_NAME%.azurecr.io/%DOCKER_TAG%
+docker push %ACR_NAME%.azurecr.io/%DOCKER_TAG%
 ```
 
 # Enable continuous deployment
 
 ```console
-az container deployment container config --name deck-service-app --resource-group deck-service-resource-group --enable-cd true
+az container deployment container config --name %ACR_NAME% --resource-group %RESOURCE_GROUP_NAME% --enable-cd true
 ```
 
 Link: https://docs.microsoft.com/en-us/azure/app-service/containers/app-service-linux-ci-cd

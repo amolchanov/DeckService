@@ -1,13 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.IO;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("UnitTests")]
 namespace DeckService

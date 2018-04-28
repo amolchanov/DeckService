@@ -1,13 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Azure.Services.AppAuthentication;
+﻿using System;
 using Microsoft.Azure.KeyVault;
-using System;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration;
 
 namespace DeckService.Repository
 {
     public class CosmosDbStorageRepositoryFactory<T> : IStorageRepositoryFactory<T> where T : class
     {
+        private static object LockObj = new object();
         private IConfiguration config;
+        private static IStorageRepository<T> Repository;
 
         public CosmosDbStorageRepositoryFactory(IConfiguration config)
         {
@@ -16,30 +18,38 @@ namespace DeckService.Repository
 
         public IStorageRepository<T> GetStorageRepository(bool isDevEnvironment)
         {
-            string cosmosDbAuthKey;
-            if (isDevEnvironment)
+            if (Repository == null)
             {
-                cosmosDbAuthKey = config["CosmosDbAuthKey"];
+                lock(LockObj)
+                {
+                    if (Repository == null)
+                    {
+                        string cosmosDbAuthKey;
+                        if (isDevEnvironment)
+                        {
+                            cosmosDbAuthKey = this.config["CosmosDbAuthKey"];
+                        }
+                        else
+                        {
+                            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                            var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                            var getSecretTask = kv.GetSecretAsync(new Uri(new Uri(this.config["KeyVaultEndpoint"]), "/secrets/CosmosDbAuthKey").ToString());
+                            getSecretTask.Wait();
+                            cosmosDbAuthKey = getSecretTask.Result.Value;
+                        }
+
+                        Repository = new CosmosDBRepository<T>(
+                            this.config["CosmosDbEndpoint"],
+                            cosmosDbAuthKey,
+                            this.config["CosmosDbDatabaseId"],
+                            this.config["CosmosDbCollectionId"]
+                        );
+
+                        Repository.Initialize().Wait();
+                    }
+                }
             }
-            else
-            {
-                var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                var getSecretTask = kv.GetSecretAsync(new Uri(new Uri(config["KeyVaultEndpoint"]), "/secrets/CosmosDbAuthKey").ToString());
-                getSecretTask.Wait();
-                cosmosDbAuthKey = getSecretTask.Result.Value;
-            }
-
-            var repository = new CosmosDBRepository<T>(
-                config["CosmosDbEndpoint"],
-                cosmosDbAuthKey,
-                config["CosmosDbDatabaseId"],
-                config["CosmosDbCollectionId"]
-            );
-
-            repository.Initialize().Wait();
-
-            return repository;
+            return Repository;
         }
     }
 }

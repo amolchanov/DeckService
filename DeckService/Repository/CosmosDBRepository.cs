@@ -67,9 +67,9 @@ namespace DeckService.Repository
                 });
         }
 
-        public async Task DeleteItemAsync(string id)
+        public async Task<Document> DeleteItemAsync(string id)
         {
-            await this.client.DeleteDocumentAsync(
+            return await this.client.DeleteDocumentAsync(
                 UriFactory.CreateDocumentUri(this.databaseId, this.collectionId, id));
         }
 

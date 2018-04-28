@@ -13,6 +13,6 @@ namespace DeckService.Repository
 
         Task<Document> UpdateItemAsync(string id, T item);
 
-        Task DeleteItemAsync(string id);
+        Task<Document> DeleteItemAsync(string id);
     }
 }

@@ -13,8 +13,8 @@ namespace UnitTests
         public void TestNewDeckMethod()
         {
             var deck = new Deck();
-            Assert.AreEqual(0, deck.LastDealtCardIndex, "The new deck must have no cards dealt");
-            AssertDeckHasExpectedAllCards(deck);
+            Assert.AreEqual(0, deck.NextCardIndex, "The new deck must have no cards dealt");
+            AssertDeckHasAllExpectedCards(deck);
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace UnitTests
                 var expectedCards = String.Concat(cardsAfterCutIndex.Concat(cardsBeforeCutIndex).Select(c => contactFunc(c)));
 
                 Assert.AreEqual(expectedCards, actualCards, "The deck wasn't cut properly");
-                AssertDeckHasExpectedAllCards(deck);
+                AssertDeckHasAllExpectedCards(deck);
             }
         }
 
@@ -55,7 +55,7 @@ namespace UnitTests
         {
             var deck = new Deck();
             deck.Shuffle();
-            AssertDeckHasExpectedAllCards(deck);
+            AssertDeckHasAllExpectedCards(deck);
         }
 
         [TestMethod]
@@ -70,11 +70,11 @@ namespace UnitTests
                 deck.DealCard();
             }
 
-            AssertDeckHasExpectedAllCards(deck);
+            AssertDeckHasAllExpectedCards(deck);
             Assert.IsTrue(deck.IsEmpty, "The deck should be empty after all cards are dealt");
         }
 
-        private void AssertDeckHasExpectedAllCards(Deck deck)
+        private void AssertDeckHasAllExpectedCards(Deck deck)
         {
             for (int i = 0; i < 52; i++)
             {

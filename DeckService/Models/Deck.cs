@@ -10,16 +10,30 @@ namespace DeckService.Models
         [JsonProperty(PropertyName = "id")]
         public Guid Id { get; set; }
 
-        [JsonProperty(PropertyName = "lastDealtCardIndex")]
-        public int LastDealtCardIndex { get; set; }
+        [JsonProperty(PropertyName = "nextCardIndex")]
+        public int NextCardIndex { get; set; }
 
-        [JsonProperty(PropertyName = "cardsIndexies")]
+        [JsonProperty(PropertyName = "cardIndexies")]
         public int[] CardIndexies { get; }
 
         [JsonProperty(PropertyName = "_etag")]
         public string ETag { get; set; }
 
-        public bool IsEmpty => this.LastDealtCardIndex == AllCards.Length;
+        [JsonIgnore]
+        public Card this[int i]
+        {
+            get
+            {
+                if (i <0 || i >= this.CardIndexies.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(i));
+                }
+
+                return AllCards[this.CardIndexies[i]];
+            }
+        }
+
+        public bool IsEmpty => this.NextCardIndex == AllCards.Length;
 
         static Deck()
         {
@@ -45,7 +59,7 @@ namespace DeckService.Models
 
         public void Shuffle()
         {
-            if (LastDealtCardIndex != 0)
+            if (NextCardIndex != 0)
             {
                 throw new InvalidOperationException("One or more cards have been dealt. Deck cannot be suffled anymore.");
             }
@@ -67,7 +81,7 @@ namespace DeckService.Models
 
         internal void Cut(int cutIndex)
         {
-            if (LastDealtCardIndex != 0)
+            if (NextCardIndex != 0)
             {
                 throw new InvalidOperationException("One or more cards have been dealt. Deck cannot be cut anymore.");
             }
@@ -95,12 +109,12 @@ namespace DeckService.Models
 
         public Card DealCard()
         {
-            if (LastDealtCardIndex == this.CardIndexies.Length)
+            if (NextCardIndex == this.CardIndexies.Length)
             {
                 throw new InvalidOperationException("No more cards to deal. The deck is empty.");
             }
 
-            return AllCards[this.CardIndexies[LastDealtCardIndex++]];
+            return AllCards[this.CardIndexies[NextCardIndex++]];
         }
     }
 }
