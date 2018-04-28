@@ -59,7 +59,7 @@ namespace DeckService.Models
 
         public void Shuffle()
         {
-            if (NextCardIndex != 0)
+            if (this.NextCardIndex != 0)
             {
                 throw new InvalidOperationException("One or more cards have been dealt. Deck cannot be suffled anymore.");
             }
@@ -76,12 +76,12 @@ namespace DeckService.Models
 
         public void Cut()
         {
-            Cut(new Random().Next(1, this.CardIndexies.Length - 2));
+            this.Cut(new Random().Next(1, this.CardIndexies.Length - 2));
         }
 
         internal void Cut(int cutIndex)
         {
-            if (NextCardIndex != 0)
+            if (this.NextCardIndex != 0)
             {
                 throw new InvalidOperationException("One or more cards have been dealt. Deck cannot be cut anymore.");
             }
