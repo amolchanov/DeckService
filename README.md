@@ -1,6 +1,8 @@
 # Description
 
-Sample .NET Core web service application to manage deck of cards running on Azure that uses Comsos DB for storage. All decks are created with a unique id in Guid format. The service supports multiple concurrent users operating independently on their decks by referencing them using unique id. The app uses Managed Service Identity to protect access to Azure Storage Vault that stores the connection string to Cosmos DB.
+Sample .NET Core web service application to manage deck of cards running on Azure in Docker container that uses Comsos DB for persistent storage. All decks are created with a unique id in Guid format. 
+The service supports multiple concurrent users operating independently on their decks by referencing them using unique id. 
+The app uses Managed Service Identity to protect access to Azure Key Vault that stores the connection string to Cosmos DB.
 
 API reference:
 
@@ -29,7 +31,6 @@ set DOCKER_TAG = deckservice
 
 # Build the application
 
-
 ```console
 docker build --pull -t %DOCKER_TAG% . -f DeckService/Dockerfile
 ```
@@ -55,7 +56,7 @@ az acr create --name %ACR_NAME% --resource-group %RESOURCE_GROUP_NAME% --sku Bas
 docker tag %DOCKER_TAG% %ACR_NAME%.azurecr.io/%DOCKER_TAG%
 ```
 
-# Log to ACR
+# Log to Azure Container Registry (ACR)
 
 ```console
 az acr update -n %USER_NAME% --admin-enabled true
@@ -121,17 +122,20 @@ docker push %ACR_NAME%.azurecr.io/%DOCKER_TAG%
 
 # Enable continuous deployment
 
+Link: https://docs.microsoft.com/en-us/azure/app-service/containers/app-service-linux-ci-cd
+
 ```console
 az container deployment container config --name %ACR_NAME% --resource-group %RESOURCE_GROUP_NAME% --enable-cd true
 ```
 
-Link: https://docs.microsoft.com/en-us/azure/app-service/containers/app-service-linux-ci-cd
-
 # TO-DO
 
 - [ ] Add instructions on creating Cosmos DB
-- [ ] Add instructions on setting up Azure KeyVault 
+- [ ] Add instructions on setting up Azure Key Vault 
 - [ ] Add instructions on configuring Managed Service Identity
+- [ ] Add instructions on setting up Kubernetes cluster
+- [ ] Integrate with AppInsights
+- [ ] Setup CI/CD using Visual Studio Online
 
 # Other links
 
