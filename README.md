@@ -1,6 +1,6 @@
 # Description
 
-A sample web service to manage deck of cards that uses Comsos DB for storage. All decks are created with a unique id in Guid format. The service supports multiple concurrent users operating independently on their decks by referencing them using unique id. The app uses Managed Service Identity to protect access to Azure Storage Vault that stores the connection string to Cosmos DB.
+Sample .NET Core web service application to manage deck of cards running on Azure that uses Comsos DB for storage. All decks are created with a unique id in Guid format. The service supports multiple concurrent users operating independently on their decks by referencing them using unique id. The app uses Managed Service Identity to protect access to Azure Storage Vault that stores the connection string to Cosmos DB.
 
 API reference:
 
@@ -127,10 +127,11 @@ az container deployment container config --name %ACR_NAME% --resource-group %RES
 
 Link: https://docs.microsoft.com/en-us/azure/app-service/containers/app-service-linux-ci-cd
 
-#TO-DO
+# TO-DO
 
-- Add instructions on creating Cosmos DB, Azure KeyVault and setting up Managed Service Identity
-
+- [ ] Add instructions on creating Cosmos DB
+- [ ] Add instructions on setting up Azure KeyVault 
+- [ ] Add instructions on configuring Managed Service Identity
 
 # Other links
 
